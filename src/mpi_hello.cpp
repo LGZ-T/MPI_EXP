@@ -17,9 +17,41 @@ void data_init(int * send_or_recv, int size)
 
 	return;
 }
-inline void mpi_test(int* send_or_recv, int size, int i)
+void clean_cache(int flag, int size)
 {
-	
+	for(int i = 0;i < 20;i++)
+	{
+		int * sending;
+		int* recving = new int[size];
+		data_init(sending, size);
+
+		if(flag == 0)
+		{
+			MPI_Barrier(MPI_COMM_WORLD);
+			MPI_Send(sending,size,MPI_INT,1,i,MPI_COMM_WORLD);
+
+			delete[] sending;
+
+			MPI_Barrier(MPI_COMM_WORLD);
+			MPI_Recv(recving,size,MPI_INT,1,i,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+
+			delete[] recving;
+		}
+		else if(flag == 1)
+		{
+			 MPI_Barrier(MPI_COMM_WORLD);
+			 MPI_Recv(recving,size,MPI_INT,0,i,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+
+			 delete[] recving;
+
+			 MPI_Barrier(MPI_COMM_WORLD);
+			 MPI_Send(sending,size,MPI_INT,0,i,MPI_COMM_WORLD);
+
+			 delete[] sending;
+
+		}
+
+	}
 }
 int main(int argc ,char* argv[])
 {
@@ -42,6 +74,7 @@ int main(int argc ,char* argv[])
    {
       cout << (sizeof(int)*size) << endl;
    }
+   clean_cache(my_rank, size);
    for(int i = 0;i < parNum;++i)
    {
       if(my_rank == 0)
@@ -70,9 +103,21 @@ int main(int argc ,char* argv[])
 	 starttime = MPI_Wtime();
          MPI_Recv(recving,size,MPI_INT,1,i,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
 	 endtime = MPI_Wtime();
-	 cout << "Or\t"<< (endtime - starttime) << "\ts" <<endl;
+	 cout << "Or?\t"<< (endtime - starttime) << "\ts" <<endl;
 
          delete[] recving;
+
+	 data_init(recving, size);
+
+         MPI_Barrier(MPI_COMM_WORLD);
+	 starttime = MPI_Wtime();
+	 MPI_Probe(1,i,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+	 endtime = MPI_Wtime();
+	 sleep(0.01);
+	 starttime = MPI_Wtime();
+         MPI_Recv(recving,size,MPI_INT,1,i,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+	 endtime = MPI_Wtime();
+	 cout << "Or\t"<< (endtime - starttime) << "\ts" <<endl;
       }
       else
       {
@@ -94,6 +139,15 @@ int main(int argc ,char* argv[])
 	 endtime = MPI_Wtime();
 
          delete[] sending;
+	 data_init(sending, size);
+
+         MPI_Barrier(MPI_COMM_WORLD);
+	 starttime = MPI_Wtime(); 
+         MPI_Send(sending,size,MPI_INT,0,i,MPI_COMM_WORLD);
+	 endtime = MPI_Wtime();
+	 
+	 delete[] sending;
+
       }
    }
    MPI_Finalize();
