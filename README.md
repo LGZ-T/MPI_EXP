@@ -1,2 +1,2 @@
 # MPI_EXP
-####This project is some benchmarks to calculate the mpi performance.
+####This project has some benchmarks to calculate the mpi performance.
