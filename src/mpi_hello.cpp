@@ -9,49 +9,46 @@ using namespace std;
 
 void data_init(int * send_or_recv, int size)
 {
-	send_or_recv = new int[size];
-	for(int i = 0;i< size;++i)
-	{
-		send_or_recv[i] = rand(); 
-	}
-
-	return;
+   for(int i = 0;i< size;++i)
+   {
+      send_or_recv[i] = rand(); 
+   }
 }
 void clean_cache(int flag, int size)
 {
-	for(int i = 0;i < 20;i++)
-	{
-		int * sending;
-		int* recving = new int[size];
-		data_init(sending, size);
+   for(int i = 0;i < 20;i++)
+   {
+      int * sending = new int[size];
+      int* recving = new int[size];
+      data_init(sending, size);
 
-		if(flag == 0)
-		{
-			MPI_Barrier(MPI_COMM_WORLD);
-			MPI_Send(sending,size,MPI_INT,1,i,MPI_COMM_WORLD);
+      if(flag == 0)
+      {
+         MPI_Barrier(MPI_COMM_WORLD);
+         MPI_Send(sending,size,MPI_INT,1,i,MPI_COMM_WORLD);
 
-			delete[] sending;
+         delete[] sending;
 
-			MPI_Barrier(MPI_COMM_WORLD);
-			MPI_Recv(recving,size,MPI_INT,1,i,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+         MPI_Barrier(MPI_COMM_WORLD);
+         MPI_Recv(recving,size,MPI_INT,1,i,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
 
-			delete[] recving;
-		}
-		else if(flag == 1)
-		{
-			 MPI_Barrier(MPI_COMM_WORLD);
-			 MPI_Recv(recving,size,MPI_INT,0,i,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+         delete[] recving;
+      }
+      else if(flag == 1)
+      {
+         MPI_Barrier(MPI_COMM_WORLD);
+         MPI_Recv(recving,size,MPI_INT,0,i,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
 
-			 delete[] recving;
+         delete[] recving;
 
-			 MPI_Barrier(MPI_COMM_WORLD);
-			 MPI_Send(sending,size,MPI_INT,0,i,MPI_COMM_WORLD);
+         MPI_Barrier(MPI_COMM_WORLD);
+         MPI_Send(sending,size,MPI_INT,0,i,MPI_COMM_WORLD);
 
-			 delete[] sending;
+         delete[] sending;
 
-		}
+      }
 
-	}
+   }
 }
 int main(int argc ,char* argv[])
 {
@@ -80,9 +77,9 @@ int main(int argc ,char* argv[])
       if(my_rank == 0)
       {
 
-         int* sending;
+         int* sending = new int[size];
          int* recving = new int[size];
-	 data_init(sending, size);
+         data_init(sending, size);
 
 
          MPI_Barrier(MPI_COMM_WORLD);
@@ -90,63 +87,72 @@ int main(int argc ,char* argv[])
          starttime = MPI_Wtime();
          MPI_Send(sending,size,MPI_INT,1,i,MPI_COMM_WORLD);
          endtime = MPI_Wtime();
-         cout <<"Os\t"<< (endtime-starttime) <<"\ts"<< endl;
+         cout <<"Os\t"<< (endtime-starttime) <<"\ts\n";
 
          delete[] sending;
 
+         double recvtime;
          MPI_Barrier(MPI_COMM_WORLD);
-	 starttime = MPI_Wtime();
-	 MPI_Probe(1,i,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
-	 endtime = MPI_Wtime();
-	 cout << "Os+(S-1)*G+L\t" << (endtime - starttime) << "\ts"<<endl;
+         MPI_Recv(&recvtime,1,MPI_DOUBLE,1,i,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+         cout << "Os+(S-1)G+L+Or\t"<< recvtime<< "\ts\n";
 
-	 starttime = MPI_Wtime();
+         double endtime_Or;
+         MPI_Barrier(MPI_COMM_WORLD);
+         starttime = MPI_Wtime();
+         MPI_Probe(1,i,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+         endtime = MPI_Wtime();
+
          MPI_Recv(recving,size,MPI_INT,1,i,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
-	 endtime = MPI_Wtime();
-	 cout << "Or?\t"<< (endtime - starttime) << "\ts" <<endl;
+         endtime_Or = MPI_Wtime();
+         cout << "Os+(S-1)*G+L\t" << (endtime - starttime) << "\ts\n";
+         cout << "Or?\t"<< (endtime_Or - endtime) << "\ts\n";
+
 
          delete[] recving;
 
-	 data_init(recving, size);
+         recving = new int[size];
+         data_init(recving, size);
 
          MPI_Barrier(MPI_COMM_WORLD);
-	 starttime = MPI_Wtime();
-	 MPI_Probe(1,i,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
-	 endtime = MPI_Wtime();
-	 sleep(0.01);
-	 starttime = MPI_Wtime();
+         MPI_Probe(1,i,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+         sleep(0.1);
+         starttime = MPI_Wtime();
          MPI_Recv(recving,size,MPI_INT,1,i,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
-	 endtime = MPI_Wtime();
-	 cout << "Or\t"<< (endtime - starttime) << "\ts" <<endl;
+         endtime = MPI_Wtime();
+         cout << "Or\t"<< (endtime - starttime) << "\ts\n";
+         delete[] recving;
       }
       else
       {
-         int* sending;
+         int* sending = new int[size];
          int* recving = new int[size];
-	 data_init(sending, size);
+         data_init(sending, size);
 
          MPI_Barrier(MPI_COMM_WORLD);
          starttime = MPI_Wtime();
          MPI_Recv(recving,size,MPI_INT,0,i,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
          endtime = MPI_Wtime();
-	 cout << "Or+(S-1)G+L+Or\t"<<(endtime -starttime) << "\ts" <<endl;
+
+         double recvtime = endtime - starttime;
+         MPI_Barrier(MPI_COMM_WORLD);
+         MPI_Send(&recvtime,1,MPI_DOUBLE,0,i,MPI_COMM_WORLD);
+         //cout << "Or+(S-1)G+L+Or\t"<<(endtime -starttime) << "\ts\n";
 
          delete[] recving;
 
          MPI_Barrier(MPI_COMM_WORLD);
-	 starttime = MPI_Wtime(); 
+         starttime = MPI_Wtime(); 
          MPI_Send(sending,size,MPI_INT,0,i,MPI_COMM_WORLD);
-	 endtime = MPI_Wtime();
+         endtime = MPI_Wtime();
 
          delete[] sending;
-	 data_init(sending, size);
+         sending  = new int[size];
+         data_init(sending, size);
 
          MPI_Barrier(MPI_COMM_WORLD);
-	 starttime = MPI_Wtime(); 
          MPI_Send(sending,size,MPI_INT,0,i,MPI_COMM_WORLD);
-	 endtime = MPI_Wtime();
-	 
-	 delete[] sending;
+
+         delete[] sending;
 
       }
    }
