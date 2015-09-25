@@ -5,6 +5,7 @@
 #include <iostream>
 #include <unistd.h>
 #include <time.h>
+#include <iomanip>
 using namespace std;
 
 void data_init(int * send_or_recv, int size)
@@ -78,54 +79,17 @@ int main(int argc ,char* argv[])
    {
       MPI_Barrier(MPI_COMM_WORLD);
 
-      starttime[0] = MPI_Wtime();
-      MPI_Send(sending, size, MPI_INT, 1, 0, MPI_COMM_WORLD);
-      endtime[0] = MPI_Wtime();
-      starttime[1] = MPI_Wtime();
-      MPI_Send(sending, size, MPI_INT, 1, 1, MPI_COMM_WORLD);
-      endtime[1] = MPI_Wtime();
-      starttime[2] = MPI_Wtime();
-      MPI_Send(sending, size, MPI_INT, 1, 2, MPI_COMM_WORLD);
-      endtime[2] = MPI_Wtime();
-      starttime[3] = MPI_Wtime();
-      MPI_Send(sending, size, MPI_INT, 1, 3, MPI_COMM_WORLD);
-      endtime[3] = MPI_Wtime();
-      starttime[4] = MPI_Wtime();
-      MPI_Send(sending, size, MPI_INT, 1, 4, MPI_COMM_WORLD);
-      endtime[4] = MPI_Wtime();
-      starttime[5] = MPI_Wtime();
-      MPI_Send(sending, size, MPI_INT, 1, 5, MPI_COMM_WORLD);
-      endtime[5] = MPI_Wtime();
-      starttime[6] = MPI_Wtime();
-      MPI_Send(sending, size, MPI_INT, 1, 6, MPI_COMM_WORLD);
-      endtime[6] = MPI_Wtime();
-      starttime[7] = MPI_Wtime();
-      MPI_Send(sending, size, MPI_INT, 1, 7, MPI_COMM_WORLD);
-      endtime[7] = MPI_Wtime();
-      starttime[8] = MPI_Wtime();
-      MPI_Send(sending, size, MPI_INT, 1, 8, MPI_COMM_WORLD);
-      endtime[8] = MPI_Wtime();
-      starttime[9] = MPI_Wtime();
-      MPI_Send(sending, size, MPI_INT, 1, 9, MPI_COMM_WORLD);
-      endtime[9] = MPI_Wtime();
+      for(int i = 0; i < parNum; ++i )
+      {
+         starttime[i] = MPI_Wtime();
+         MPI_Send(sending, size, MPI_INT, 1, i,MPI_COMM_WORLD);
+         endtime[i] = MPI_Wtime();
+      }
 
-      for(int i =0; i < parNum; ++i)
-      {
-         result[i] = endtime[i]-starttime[i];
-      }
       for(int i = 0; i < parNum; ++i)
       {
-         cout << starttime[i]<< "\t";
-      }
-      cout << endl;
-      for(int i = 0; i < parNum; ++i)
-      {
-         cout << endtime[i]<< "\t";
-      }
-      cout << endl;
-      for(int i = 0; i < parNum; ++i)
-      {
-         cout << result[i]<< "\t";
+         result[i] = endtime[i] - starttime[i];
+         cout <<i << "\t"<<std::fixed <<setprecision(15)<<result[i]<< "\n";
       }
       cout << endl;
    }
