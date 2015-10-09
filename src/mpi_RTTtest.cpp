@@ -95,13 +95,47 @@ void get_Os_print(int n, int start, int end, int stride)
    }
 
 }
+void get_Gg_print(int n, int start, int end, int stride)
+{
+   for(int s = start;s < end; s += stride)
+   {
+      PRTTstr* prttn;
+      PRTTstr* prtt1;
+      prtt1 = PRTT(1, 0, s);
+      prttn = PRTT(n, 0, s); 
+      if(my_rank == 1)
+      {
+         double oplusd = (double)(prttn->time - prtt1->time)/(n-1);
+         cout << s << "\t"  << oplusd <<endl;
+         delete prttn;
+         delete prtt1;
+      }
+   }
+
+}
 
 void get_Os()
 {
    int n = 16;
    if(my_rank == 1)
       cout << "Os" << endl;
+   get_Os_print(n, 1, 2, 1);
+   get_Os_print(n, 1, 2, 1);
    get_Os_print(n,1000,20000,1000);
+   get_Os_print(n,20000,100000,2000);
+   get_Os_print(n,100000,1000000,20000);
+}
+
+void get_Gg()
+{
+   int n = 16;
+   if(my_rank == 1)
+      cout << "Gg" << endl;
+   get_Gg_print(n, 1, 2, 1);
+   get_Gg_print(n, 1, 2, 1);
+   get_Gg_print(n,1000,20000,1000);
+   get_Gg_print(n,20000,100000,2000);
+   get_Gg_print(n,100000,1000000,20000);
 }
 
 int main(int argc, char* argv[])
@@ -110,6 +144,7 @@ int main(int argc, char* argv[])
    MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
    get_Os();
+   get_Gg();
 
    MPI_Finalize();
    return 0;
